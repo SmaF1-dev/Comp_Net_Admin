@@ -4,21 +4,21 @@ $repo = Split-Path -Parent $PSScriptRoot
 Push-Location $repo
 try {
     docker compose config --quiet
-    if ($LASTEXITCODE -ne 0) { throw 'Docker Compose configuration is invalid.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Ошибка в конфигурации Docker Compose.' }
 
     docker compose ps -a
-    if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect Docker Compose containers.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Не удалось получить список контейнеров Docker Compose.' }
 
     $expected = @('nextcloud', 'loki', 'promtail', 'postgres-zabbix', 'zabbix-server', 'zabbix-web', 'grafana')
     $running = @(docker compose ps --services --status running)
-    if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect running services.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Не удалось получить список работающих сервисов.' }
 
     $missing = @($expected | Where-Object { $_ -notin $running })
-    if ($missing.Count -gt 0) { throw ('Not running: ' + ($missing -join ', ')) }
+    if ($missing.Count -gt 0) { throw ('Не запущены сервисы: ' + ($missing -join ', ')) }
 
     $dbHealth = docker inspect --format '{{.State.Health.Status}}' lab1-postgres-zabbix
     if ($LASTEXITCODE -ne 0 -or $dbHealth -ne 'healthy') {
-        throw "PostgreSQL healthcheck is not healthy: $dbHealth"
+        throw "Проверка состояния PostgreSQL не пройдена: $dbHealth"
     }
 
     $lokiReady = $false
@@ -31,10 +31,10 @@ try {
         if ($attempt -lt 20) { Start-Sleep -Seconds 2 }
     }
     if (-not $lokiReady) {
-        throw 'Loki readiness endpoint did not return ready. Check: docker compose logs --tail=100 loki'
+        throw 'Loki не подтвердил готовность к работе. Проверьте журнал: docker compose logs --tail=100 loki'
     }
 
-    Write-Host 'PASS: 7 services running, PostgreSQL healthy, Loki ready.' -ForegroundColor Green
+    Write-Host 'УСПЕШНО: семь сервисов запущены, PostgreSQL и Loki готовы к работе.' -ForegroundColor Green
 }
 finally {
     Pop-Location

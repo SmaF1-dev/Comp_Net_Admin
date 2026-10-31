@@ -21,7 +21,7 @@
       "id": 1,
       "type": "table",
       "title": "Журнал Nextcloud",
-      "description": "Таблица LogQL-записей, полученных Loki от Promtail.",
+      "description": "Таблица записей журнала, полученных через Loki от Promtail.",
       "datasource": {
         "type": "loki",
         "uid": "nextcloud-loki"

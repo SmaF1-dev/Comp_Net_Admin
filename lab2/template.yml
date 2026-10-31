@@ -48,6 +48,6 @@ zabbix_export:
                 - |
                   if (value === "healthy") return 1;
                   if (value === "unhealthy") return 0;
-                  throw "Unexpected Nextcloud state: " + value;
+                  throw "Неизвестное состояние Nextcloud: " + value;
           master_item:
             key: nextcloud.ping

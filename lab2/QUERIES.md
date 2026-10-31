@@ -8,7 +8,7 @@
 {job="nextcloud_logs"}
 ```
 
-Этот запрос возвращал пять исходных записей в Grafana Explore (см. `screenshots/11-grafana-loki.png`).
+Этот запрос вернул пять исходных записей в разделе выполнения запросов Grafana (см. `screenshots/11-grafana-loki.png`).
 
 Фильтрация диагностических записей по подстроке:
 

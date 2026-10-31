@@ -5,7 +5,7 @@ Push-Location $repo
 try {
     $logPath = '/var/www/html/data/nextcloud.log'
     docker compose exec -T nextcloud sh -c "test -f $logPath"
-    if ($LASTEXITCODE -ne 0) { throw 'Nextcloud log file does not exist.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Файл журнала Nextcloud не найден.' }
 
     $marker = 'LAB2_PIPELINE_' + [guid]::NewGuid().ToString('N').Substring(0, 12)
     $entry = [ordered]@{
@@ -16,9 +16,9 @@ try {
         message = $marker
     } | ConvertTo-Json -Compress
 
-    Write-Host 'Appending one clearly labeled diagnostic JSON entry to Nextcloud log...'
+    Write-Host 'Добавляем в журнал Nextcloud одну диагностическую запись в формате JSON...'
     $entry | docker compose exec -T -u www-data nextcloud sh -c "cat >> $logPath"
-    if ($LASTEXITCODE -ne 0) { throw 'Could not append diagnostic entry to Nextcloud log.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Не удалось добавить диагностическую запись в журнал Nextcloud.' }
 
     $selector = '{job="nextcloud_logs"} |= "' + $marker + '"'
     $encoded = [uri]::EscapeDataString($selector)
@@ -31,7 +31,7 @@ try {
             $response = Invoke-RestMethod -Method Get -Uri $url -TimeoutSec 8
         }
         catch {
-            Write-Host "Loki query attempt ${attempt}: $($_.Exception.Message)"
+            Write-Host "Попытка обращения к Loki №${attempt}: $($_.Exception.Message)"
             continue
         }
 
@@ -48,15 +48,15 @@ try {
     }
 
     if (-not $found) {
-        Write-Host 'No diagnostic entry appeared in Loki. Recent Promtail logs:' -ForegroundColor Yellow
+        Write-Host 'Диагностическая запись не обнаружена в Loki. Последние сообщения Promtail:' -ForegroundColor Yellow
         docker compose logs --tail=25 promtail
-        Write-Host 'Recent Loki logs:' -ForegroundColor Yellow
+        Write-Host 'Последние сообщения Loki:' -ForegroundColor Yellow
         docker compose logs --tail=25 loki
-        throw "FAIL: Loki did not return diagnostic entry $marker."
+        throw "ОШИБКА: Loki не вернул диагностическую запись $marker."
     }
 
-    Write-Host "PASS: Nextcloud file -> Promtail -> Loki. Diagnostic entry: $marker" -ForegroundColor Green
-    Write-Host 'Grafana: Dashboard > Laboratory 2 > Nextcloud logs; set Last 1 hour and refresh.'
+    Write-Host "УСПЕШНО: запись из файла Nextcloud передана через Promtail в Loki. Идентификатор: $marker" -ForegroundColor Green
+    Write-Host 'В Grafana откройте папку Laboratory 2, панель журналов Nextcloud; выберите период за последний час и обновите данные.'
 }
 finally {
     Pop-Location

@@ -20,8 +20,8 @@
     {
       "id": 1,
       "type": "stat",
-      "title": "Nextcloud is",
-      "description": "Числовой зависимый элемент Zabbix nextcloud.healthy: 1 — healthy, 0 — unhealthy. Исходный текстовый элемент nextcloud.ping сохранен.",
+      "title": "Состояние Nextcloud",
+      "description": "Зависимый числовой показатель Zabbix nextcloud.healthy: 1 — обычный режим, 0 — режим обслуживания. Исходный текстовый показатель nextcloud.ping сохранён.",
       "datasource": {
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "nextcloud-zabbix"
