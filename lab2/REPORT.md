@@ -100,13 +100,15 @@ docker compose exec -T -u www-data nextcloud php occ maintenance:mode --off
 {job="nextcloud_logs"}
 ```
 
-вернул **5 записей** из первоначального журнала. В Explore для источника Zabbix с типом запроса `Text`, хостом `Nextcloud Server` и элементом `Nextcloud: ping service` получена таблица исторических значений: `healthy` в 17:06:31, `unhealthy` в 17:07:31 и `healthy` в 17:08:31. Примеры дополнительных LogQL-запросов приведены в `QUERIES.md`; их результаты на стенде отдельно не фиксировались.
+вернул **5 записей** из первоначального журнала. В Explore для источника Zabbix с типом запроса `Text`, хостом `Nextcloud Server` и элементом `Nextcloud: ping service` получена таблица исторических значений: `healthy` в 17:06:31, `unhealthy` в 17:07:31 и `healthy` в 17:08:31. Дополнительно в Grafana Explore проверена фильтрация LogQL по подстроке. Запрос `{job="nextcloud_logs"} |= "LAB2_PIPELINE_"` вернул одну диагностическую запись с идентификатором `LAB2_PIPELINE_1d7f9a65f7ab`. Это подтверждает не только выбор потока по метке `job`, но и работу фильтра содержимого строк `|=`. Прочие варианты запросов приведены в `QUERIES.md` как примеры без утверждения об их фактическом выполнении.
 
 ![Источники данных Grafana](screenshots/10-grafana-sources.png)
 
 ![Результат запроса Loki](screenshots/11-grafana-loki.png)
 
 ![Текстовые значения из Zabbix](screenshots/12-grafana-zabbix.png)
+
+![LogQL: фильтрация диагностических записей](screenshots/15-logql-filter.png)
 
 ## 7. Два дашборда Grafana
 

@@ -84,7 +84,7 @@ docker compose logs promtail | Select-String 'nextcloud.log'
 powershell -ExecutionPolicy Bypass -File .\scripts\check-logs.ps1
 ```
 
-Метка логов — `job="nextcloud_logs"`, источник файлов — `/opt/nc_data/*.log`. Примеры LogQL доступны в [QUERIES.md](QUERIES.md).
+Метка логов — `job="nextcloud_logs"`, источник файлов — `/opt/nc_data/*.log`. В Grafana Explore проверены выбор всех записей и фильтрация диагностических событий запросом `{job="nextcloud_logs"} |= "LAB2_PIPELINE_"` (скриншот `screenshots/15-logql-filter.png`). Запросы и дополнительные примеры приведены в [QUERIES.md](QUERIES.md).
 
 Если нужно доказать поступление **новой** записи, используйте:
 

@@ -23,3 +23,4 @@
 | `13-dashboard-status.png` | Зелёная панель HEALTHY |
 | `14-dashboard-logs.png` | Появление свежей диагностической записи в Grafana |
 | `14a-dashboard-logs-initial.png` | Пять записей в первоначальной таблице Loki |
+| `15-logql-filter.png` | Фильтрация записей LogQL по маркеру LAB2_PIPELINE_ |
