@@ -1,0 +1,105 @@
+services:
+  nextcloud:
+    image: nextcloud:29.0.6
+    container_name: lab1-nextcloud
+    ports:
+      - "127.0.0.1:${NEXTCLOUD_PORT:-8080}:80"
+    volumes:
+      - nextcloud-html:/var/www/html
+      - nextcloud-data:/var/www/html/data
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: lab1-loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "127.0.0.1:3100:3100"
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: lab1-promtail
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - nextcloud-data:/opt/nc_data:ro
+      - ./promtail_config.yml:/etc/promtail/config.yml:ro
+    depends_on:
+      - nextcloud
+      - loki
+    restart: unless-stopped
+
+  postgres-zabbix:
+    image: postgres:15-alpine
+    container_name: lab1-postgres-zabbix
+    environment:
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: ${ZABBIX_DB_PASSWORD:-zabbix}
+      POSTGRES_DB: zabbix
+    volumes:
+      - zabbix-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zabbix -d zabbix"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:ubuntu-6.4-latest
+    container_name: lab1-zabbix-server
+    ports:
+      - "127.0.0.1:10051:10051"
+    depends_on:
+      postgres-zabbix:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: ${ZABBIX_DB_PASSWORD:-zabbix}
+      POSTGRES_DB: zabbix
+      DB_SERVER_HOST: postgres-zabbix
+    restart: unless-stopped
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:ubuntu-6.4-latest
+    container_name: lab1-zabbix-web
+    ports:
+      - "127.0.0.1:8082:8080"
+    depends_on:
+      postgres-zabbix:
+        condition: service_healthy
+      zabbix-server:
+        condition: service_started
+    environment:
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: ${ZABBIX_DB_PASSWORD:-zabbix}
+      POSTGRES_DB: zabbix
+      DB_SERVER_HOST: postgres-zabbix
+      ZBX_SERVER_HOST: zabbix-server
+      PHP_TZ: Europe/Moscow
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: lab1-grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      GF_INSTALL_PLUGINS: "alexanderzobnin-zabbix-app 4.5.6"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      ZABBIX_UI_PASSWORD: ${ZABBIX_UI_PASSWORD:-zabbix}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - loki
+      - zabbix-web
+    restart: unless-stopped
+
+volumes:
+  nextcloud-html:
+  nextcloud-data:
+  zabbix-db:
+  grafana-data:

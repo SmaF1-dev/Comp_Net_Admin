@@ -1,0 +1,66 @@
+{
+  "id": null,
+  "uid": "lab2-nextcloud-logs",
+  "title": "Nextcloud — логи (Loki)",
+  "tags": [
+    "lab2",
+    "nextcloud",
+    "loki"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "editable": true,
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "table",
+      "title": "Журнал Nextcloud",
+      "description": "Таблица LogQL-записей, полученных Loki от Promtail.",
+      "datasource": {
+        "type": "loki",
+        "uid": "nextcloud-loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 15
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "nextcloud-loki"
+          },
+          "refId": "A",
+          "expr": "{job=\"nextcloud_logs\"}",
+          "queryType": "range",
+          "editorMode": "code",
+          "maxLines": 1000
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
+        },
+        "overrides": []
+      }
+    }
+  ]
+}

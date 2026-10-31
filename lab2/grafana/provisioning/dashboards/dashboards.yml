@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: Nextcloud laboratory
+    orgId: 1
+    folder: Laboratory 2
+    type: file
+    disableDeletion: false
+    allowUiUpdates: true
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards
