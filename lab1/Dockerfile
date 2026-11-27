@@ -10,7 +10,6 @@ RUN apt-get update \
 
 COPY patroni.yml /etc/patroni.yml
 
-# Patroni «PID 1» initializes and stops PostgreSQL itself.
 USER postgres
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["patroni"]

@@ -1,0 +1,57 @@
+@startuml
+!pragma layout smetana
+skinparam monochrome true
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 16
+scale 1.5
+skinparam nodesep 58
+skinparam ranksep 48
+
+node "Учебный компьютер" <<device>> {
+  node "Windows" as windows <<executionEnvironment>> {
+    artifact "psql.exe"
+  }
+
+  node "Docker Engine" <<executionEnvironment>> {
+    node "<u>envoy : DockerContainer</u>" as envoy <<executionEnvironment>>
+    node "<u>pg1 : DockerContainer</u>" as pg1 <<executionEnvironment>> {
+      artifact "PostgreSQL" as postgres1
+      artifact "Patroni" as patroni1
+    }
+    node "<u>pg2 : DockerContainer</u>" as pg2 <<executionEnvironment>> {
+      artifact "PostgreSQL" as postgres2
+      artifact "Patroni" as patroni2
+    }
+
+    node "Кластер etcd" as dcs {
+      node "<u>etcd1 : DockerContainer</u>" as etcd1 <<executionEnvironment>>
+      node "<u>etcd2 : DockerContainer</u>" as etcd2 <<executionEnvironment>>
+      node "<u>etcd3 : DockerContainer</u>" as etcd3 <<executionEnvironment>>
+      etcd1 -[hidden]right- etcd2
+      etcd2 -[hidden]right- etcd3
+      note bottom of etcd2
+        Обмен между всеми участниками etcd
+        Raft, TCP/2380
+      end note
+    }
+
+    note right of envoy
+      Проверка обоих узлов
+      HTTP GET /primary, TCP/8008
+      Подключения к основному серверу
+      PostgreSQL, TCP/5432
+    end note
+
+    envoy -- pg1
+    envoy -- pg2
+    pg1 -right- pg2 : <back:white>Поток WAL, TCP/5432</back>
+    pg1 -- dcs : API etcd, TCP/2379
+    pg2 -- dcs : API etcd, TCP/2379
+  }
+
+  windows -- envoy : PostgreSQL\n127.0.0.1:15432
+}
+@enduml
+
